@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package steg_analysis;
+
+import "steg_service.proto";
+
+option go_package = "./pb";
+option java_package = "stego.hub.grpc.wrapper";
+
+enum Status {
+  SUCCESS = 0;
+  OUT_OF_CONDITION = 1;
+  GRPC_ERROR = 2;
+  EXCEEDED_TIMEOUT = 3;
+  FILE_TYPE_NOT_ALLOWED = 4;
+  EXCEEDED_FILESIZE = 5;
+  SERVICE_ERROR = 6;
+  CLIENT_ERROR = 7;
+}
+
+message StegAnalysisRequest {
+  bytes file = 1;
+  map<string, string> params = 2;
+  string exec = 3;
+  string file_name = 4;
+}
+
+message StegAnalysisResponse {
+  repeated TaskResult task_results = 1;
+  string error = 2;
+  int64 duration_ms = 3;
+  string sha256 = 4;
+}
+
+message TaskResult {
+  string task_id = 1;
+  string service_name = 2;
+  string function_name = 3;
+  steg_service.StegServiceResponse service_response = 4;
+  string error = 5;
+  string status = 6;
+  int64 duration_ms = 7;
+}
+
+service StegAnalysisService {
+  rpc Execute(StegAnalysisRequest) returns (StegAnalysisResponse);
+}

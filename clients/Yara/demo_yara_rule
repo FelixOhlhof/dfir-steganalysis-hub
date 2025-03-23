@@ -1,0 +1,11 @@
+import "stego"
+import "string"
+
+rule stego {
+  condition:
+    stego.exec(endpoint) == 0 and 
+    string.to_int(stego.values["report->bytes_extracted"]) > 0 or
+    stego.values["report->chi_square_found_data"] == "true" or
+    stego.values["report->embedded_string"] != "" or
+    stego.values["report->spa_analysis_found_data"] == "true"
+}

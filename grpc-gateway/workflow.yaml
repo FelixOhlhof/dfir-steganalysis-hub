@@ -1,0 +1,89 @@
+workflow_timeout_in_sec: 5
+max_concurrent_req: 5
+toggle_output: true
+allowed_file_types:
+  - png
+  - jpg
+
+sync:
+  - async:
+      - exec: aletheia.effnetb0_predict
+        name: f5
+        param:
+            model_name: A-alaska2-f5
+      - exec: aletheia.effnetb0_predict
+        name: juniw
+        param:
+            model_name: A-alaska2-juniw
+      - exec: extractor.extract_jsteg
+        name: jsteg
+    allowed_file_types:
+      - jpg
+
+  - async:
+      - exec: aletheia.effnetb0_predict
+        name: hill
+        param:
+            model_name: A-alaska2-hill
+      - exec: aletheia.effnetb0_predict
+        name: steganogan
+        param:
+            model_name: A-alaska2-steganogan
+    allowed_file_types:
+      - png
+      
+  - async:
+      - exec: extractor.extract_comment
+        name: comment
+      - exec: extractor.extract_eoi
+        name: eoi
+      
+  - async:
+      - exec: extractor.binwalk_analyze
+        name: binwalk_jsteg
+        file: jsteg->data
+        cond: (!isNull(jsteg->data))
+      - exec: extractor.binwalk_analyze
+        name: binwalk_comment
+        file: comment->data
+        cond: (!isNull(comment->data))
+      - exec: extractor.binwalk_analyze
+        name: binwalk_eoi
+        file: eoi->data
+        cond: (!isNull(eoi->data))
+        
+  - async:
+      - exec: extractor.binwalk_entropy
+        name: entropy_jsteg
+        file: jsteg->data
+        cond: (!isNull(jsteg->data))
+      - exec: extractor.binwalk_entropy
+        name: entropy_comment
+        file: comment->data
+        cond: (!isNull(comment->data))
+      - exec: extractor.binwalk_entropy
+        name: entropy_eoi
+        file: eoi->data
+        cond: (!isNull(eoi->data))
+    
+  - exec: util.nop
+    show_output: True
+    name: extracted
+    additional_return_fields:
+      bytes: condReturn(!isNull(jsteg->data), sizeOf(jsteg->data), !isNull(comment->data), sizeOf(comment->data), !isNull(eoi->data), sizeOf(eoi->data), 0)
+    
+  - exec: util.nop
+    show_output: True
+    name: aletheia
+    additional_return_fields:
+      rating: condReturn(safe(f5->pred, 0) > 0.8, "HIGH", safe(juniw->pred, 0) > 0.8, "HIGH", safe(hill->pred, 0) > 0.8, "HIGH", safe(steganogan->pred, 0) > 0.8, "HIGH", safe(f5->pred, 0) > 0.6, "MEDIUM", safe(juniw->pred, 0) > 0.6, "MEDIUM", safe(hill->pred, 0) > 0.6, "MEDIUM", safe(steganogan->pred, 0) > 0.6, "MEDIUM", safe(f5->pred, 1) <= 0.6, "LOW", safe(juniw->pred, 1) <= 0.6, "LOW", safe(hill->pred, 1) <= 0.6, "LOW", safe(steganogan->pred, 1) <= 0.6, "LOW", "n/a")
+  
+  - exec: util.nop
+    show_output: True
+    name: binwalk
+    additional_return_fields:
+      signature: condReturn(!isNull(binwalk_jsteg->result.Analysis.file_map[0].name), binwalk_jsteg->result.Analysis.file_map[0].name, !isNull(binwalk_eoi->result.Analysis.file_map[0].name), binwalk_eoi->result.Analysis.file_map[0].name, !isNull(binwalk_comment->result.Analysis.file_map[0].name), binwalk_comment->result.Analysis.file_map[0].name, "n/a")
+      entropy: condReturn(!isNull(entropy_jsteg->result.Entropy.blocks[0].entropy), entropy_jsteg->result.Entropy.blocks[0].entropy, !isNull(entropy_comment->result.Entropy.blocks[0].entropy), entropy_comment->result.Entropy.blocks[0].entropy, !isNull(entropy_eoi->result.Entropy.blocks[0].entropy), entropy_eoi->result.Entropy.blocks[0].entropy, 0) / 8
+      
+    
+      

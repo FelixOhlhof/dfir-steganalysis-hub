@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package steg_service;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "./pb";
+option java_package = "stego.hub.grpc.wrapper";
+
+enum Type {
+  STRING = 0;
+  INT = 1;
+  FLOAT = 2;
+  BOOL = 3;
+  DICT = 4;
+  LIST = 5;
+  BYTES = 6;
+}
+
+message StegServiceRequest {
+  bytes file = 1;
+  string function = 2;
+  map<string, StegServiceRequestParameterValue> params = 3;
+  int64 request_timeout_sec = 4;
+}
+
+message StegServiceRequestParameterValue {
+  oneof value {
+    string string_value = 1;
+    int64 int_value = 2;
+    float float_value = 3;
+    bool bool_value = 4;
+    bytes binary_value = 5;
+  }
+}
+
+message ResponseValue {
+  oneof value {
+    string string_value = 1;
+    int64 int_value = 2;
+    float float_value = 3;
+    bool bool_value = 4;
+    bytes binary_value = 5;
+    google.protobuf.Value structured_value = 6; // use only for lists and dicts
+  }
+}
+
+message StegServiceResponse {
+  map<string, ResponseValue> values = 1;
+  string error = 2;
+}
+
+message StegServiceReturnFieldDefinition {
+  string name = 1;
+  string label = 2;
+  Type type = 3;
+  string description = 4;
+  bool isIterable = 5;
+}
+
+message StegServiceParameterDefinition {
+  string name = 1;
+  Type type = 2;
+  string default = 3;
+  string description = 4;
+  bool optional = 5;
+}
+
+message StegServiceFunction {
+  string name = 1;
+  string description = 2;
+  repeated StegServiceParameterDefinition parameter = 3;
+  repeated StegServiceReturnFieldDefinition return_fields = 4;
+  repeated string supported_file_types = 5;
+  bool file_optional = 6;
+  bool is_nop = 7;
+}
+
+message StegServiceInfo {
+  string name = 1;
+  string description = 2;
+  repeated StegServiceFunction functions = 3;
+}
+
+service StegService {
+  rpc Execute(StegServiceRequest) returns (StegServiceResponse);
+  rpc GetStegServiceInfo(google.protobuf.Empty) returns (StegServiceInfo);
+}

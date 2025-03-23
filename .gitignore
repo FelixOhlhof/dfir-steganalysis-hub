@@ -1,0 +1,8 @@
+TODOS.md
+clients/Yara/yara-4.5.1/
+clients/Yara/wrapper
+clients/Velociraptor/grpc-client.exe
+clients/Velociraptor/grpc-client
+steg-services/aletheia/.venv/
+steg-services/util/.venv/
+grpc-gateway/results

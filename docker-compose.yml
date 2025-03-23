@@ -1,0 +1,73 @@
+services:
+  grpcgw:
+    build:
+      context: ./grpc-gateway
+    ports:
+      - "${GRPCGW_PORT}:${GRPCGW_PORT}"
+    environment:
+      services: util:${UTIL_PORT};extractor:${EXTRACTOR_PORT};aletheia:${ALETHEIA_PORT};
+      port: ${GRPCGW_PORT}
+    volumes:
+      - ./grpc-gateway/workflow.yaml:/app/workflow.yaml
+      - ./grpc-gateway/results:/app/results
+    depends_on:
+      - aletheia
+      - util
+      - extractor
+    networks:
+      - gateway
+      - default
+    restart: always
+    command: sh -c "sleep 10 && ./grpcgw"
+
+  restgw:
+    build:
+      context: ./rest-gateway
+    ports:
+      - "${RESTGW_PORT}:${RESTGW_PORT}"
+    environment:
+      grpcgw: grpcgw:${GRPCGW_PORT}
+      port: ${RESTGW_PORT}
+    volumes:
+      - ./clients:/clients:ro
+    networks:
+      - gateway
+      - default
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
+    environment:
+      REACT_APP_RESTGW_URL: http://localhost:${RESTGW_PORT}
+
+  aletheia:
+    build:
+      context: ./steg-services/aletheia
+    environment:
+      port: ${ALETHEIA_PORT}
+    ports:
+      - "${ALETHEIA_PORT}:${ALETHEIA_PORT}"
+
+  extractor:
+    build:
+      context: ./steg-services/extractor
+    environment:
+      port: ${EXTRACTOR_PORT}
+    ports:
+      - "${EXTRACTOR_PORT}:${EXTRACTOR_PORT}"
+
+  util:
+    build:
+      context: ./steg-services/util
+    environment:
+      port: ${UTIL_PORT}
+    volumes:
+      - ./steg-services/util/files:/app/files
+    ports:
+      - "${UTIL_PORT}:${UTIL_PORT}"
+
+networks:
+  gateway:
+    driver: bridge

@@ -1,0 +1,70 @@
+name: Custom.Artifact.Stego
+description: |
+  Execute steganalysis.
+
+tools:
+  - name: velociraptor_client
+    url: http://dfir-steg-hub-restgw-1:5001/clients/Velociraptor/grpc-client-linux-amd64
+
+type: CLIENT
+
+parameters:
+  - name: grpc_gateway_addr
+    description: |
+      Grpc gateway endpoint
+    default: "dfir-steg-hub-grpcgw-1:5000"
+  - name: dir_or_file
+    description: |
+      Directory or file
+  - name: recursive
+    type: bool
+    description: |
+      Execute recursive
+    default: false
+  - name: file_extensions
+    description: |
+      File extensions e.g. png jpg jpeg (optional)
+    default: ""
+  - name: params
+    description: |
+      Additional parameters which will be passed to each service
+      Usage: -P1 value1 -P2 value2 ...
+    default: ""
+  - name: debug
+    type: bool
+    description: |
+      Show arguments
+
+sources:
+  - query: |
+      LET bin <= SELECT * FROM Artifact.Generic.Utils.FetchBinary(ToolName= "velociraptor_client")
+      LET r = if(condition=recursive, then="-r", else="")
+      LET d = if(condition=debug, then="-d", else="")
+      LET p = "-p " + params
+      LET x = "-x " + file_extensions
+
+      SELECT * FROM foreach(
+          row={
+            SELECT Stdout FROM execve(argv=[
+                   bin[0].OSPath,
+                   grpc_gateway_addr,
+                   dir_or_file,
+                   r,
+                   x,
+                   p,
+                   d],
+                   length=10000000)
+          }, query={
+            SELECT * FROM parse_json_array(data=Stdout)
+        })
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+

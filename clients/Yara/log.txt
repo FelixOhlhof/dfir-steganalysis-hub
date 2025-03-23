@@ -1,0 +1,11 @@
+Executing analysis: 2025-02-25 19:29:41
+
+File: d95fe64370cabd9c8db62429dd99457073c01b7817af4b0aff9f892d990978ae
+report->bytes_extracted: 181.000000
+report->chi_square_found_data: false
+report->embedded_string: 
+report->spa_analysis_found_data: true
+-------------------------------------------------------------------
+
+
+Successfull: 1  Errors: 0

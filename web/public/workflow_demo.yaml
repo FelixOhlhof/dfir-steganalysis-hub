@@ -1,0 +1,78 @@
+# Workflow settings
+task_timeout_in_sec: 3 # Timeout for a tasks
+workflow_timeout_in_sec: 10 # Timeout for the whole worklfow
+max_concurrent_req: 5 # Maximal amount of concurrent analysis requests
+max_file_size_in_kb: 5096 # Maximal file size
+toggle_output: False # If true every task need to set the property show_output: true to be returned
+allowed_file_types: # Allowed file types
+  - png
+  - jpg
+
+# Task group will be initiated by sync/async keyword
+sync:
+  - async:
+      # List of tasks to be executed
+      # exec specifies the the service followed by the function to execute
+      - exec: service1.simple_detect_1
+        name: MyTask # Optional task name, if not specified will be t+taskNr e.g. t1
+        task_timeout_in_sec: 15 # Workflow settings can be overwritten for each task
+        param: # Additional parameters which will be passed to the service
+          someKey: someValue
+          otherKey: otherValue
+        return: # Specifies what fields should be returned, if not specified all fields will be returned
+          - value1
+          - value2
+        additional_return_fields:
+          detected: t1->value1 > 0.5 # Will add a field detected (bool) to return fields, when using const strings use toString("your str")
+      - exec: service1.simple_detect_2 # Minimal declaration for a task
+  - async:
+      - iter: # Iterator section
+          - exec: service2.save # Task to be executed
+            file: i1 # Iterator Item can be accessed by i+iteratorNr
+            hide_on_err: True # Will hide the output if an error occurs
+          - exec: service2.save
+            file: i1->key # If the iterator iterates over a dictionary the key and value can be accessed via i->key and i->value
+        range: t1->someList # Range-Keyword specifies an integer range (start end [step]) or an iterable value (dict/map, list, array)
+        cond: isIterable(t1->someList) # Condition for the iterator
+      - exec: service3.advanced_analysis_1
+        cond: T1->detected # Condition to evaluate, must be true for task to execute
+      - exec: service3.advanced_analysis_2
+        cond: toBool(2.2->detected) # There are common funtions which can be used.
+  - exec: service3.attribut_extraction
+    file: 2.2->extracted_file # the file to be analysed can be overwritten (must be bytes)
+    cond: 2.3->accuracy > 0.8 || 2.4->foundFlag == true
+    hide: # Fields which will not be included in the result
+      - uselessField1
+#
+# Common functions which can be used in cond-statement:
+# Function 		Arguments					 Returns
+# strlen		str 	(args[0]: string)	 Length of a string [int].
+# strcontains	str 	(args[0]: string)	 Checks if a string (str) contains a substring (substr) [bool].
+#				substr 	(args[1]: string)
+# strstartswith	str 	(args[0]: string)	 Checks if a string (str) starts with a prefix (prefix) [bool].
+#				prefix 	(args[1]: string)
+# strendswith	str 	(args[0]: string)	 Checks if a string (str) ends with a suffix (suffix) [bool].
+#				suffix 	(args[1]: string)
+# strtolower	str 	(args[0]: string)	 Converts a string to lowercase [string].
+# strreplace	str 	(args[0]: string)	 Replaces all occurrences of old in str with new [string].
+#				old 	(args[1]: string)
+#				new 	(args[2]: string)
+# strsplit		str 	(args[0]: string)	 Splits a string (str) by a delimiter (delimiter) into a slice [[]string].
+#				delim	(args[1]: string)
+# strtrim		str 	(args[0]: string)	 Removes leading and trailing whitespace from a string [string].
+# toString		value 	(args[0]: generic)	 Converts any value into a string [string].
+# toNumber		value 	(args[0]: string)	 Converts a string into a Number [float].
+# toBool		value 	(args[0]: generic)	 Converts a string, integer, or float into a boolean [bool].
+# isNumeric		value 	(args[0]: generic)	 Checks if the input value is numeric (integer or float) [bool].
+# isIterable	value 	(args[0]: generic)	 Checks if the input value is iterable (map or list) [bool].
+# isNull		value 	(args[0]: generic)	 Checks if the input value is null [bool].
+# listContains	array 	(args[0]: list) 	 Checks if an array (array) contains a specific value (value) [bool].
+# 				value 	(args[1]: generic)
+# containsKey	dict 	(args[0]: dict) 	 Checks if a key is present in a dictionary [bool].
+# 				key 	(args[1]: generic)
+# count			value 	(args[0]: generic)	 Returns the number of elements [int].
+# sizeOf		value 	(args[0]: generic)	 Returns the size of an element in bytes [int].
+# safe			value 	(args[0]: generic) 	 Checks if an value is not null, if so returns arg[1] [bool].
+# 				value 	(args[1]: generic)
+# condReturn	value 	(args...: generic)	 Returns a specified element if a condition is true. E.g. condReturn(1==1, 0, 1) returns 0, condReturn(1==2, 0, 3=2, 1, "XYZ") returns "XYZ"
+

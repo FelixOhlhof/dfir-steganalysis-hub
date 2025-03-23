@@ -1,0 +1,5 @@
+grpcio==1.68.1
+grpcio-tools==1.68.1
+pillow==11.0.0
+protobuf==5.29.1
+setuptools==75.2.0

@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package config;
+
+import "google/protobuf/empty.proto";
+import "steg_service.proto";
+
+option go_package = "./pb";
+
+message GetWorkflowResponse { string content = 1; }
+
+message SetWorkflowRequest { string content = 1; }
+
+message SetWorkflowResponse { string message = 1; }
+
+message GetServicesResponse {
+  repeated steg_service.StegServiceInfo services = 1;
+}
+
+service ConfigService {
+  rpc GetWorkflowFile(google.protobuf.Empty) returns (GetWorkflowResponse);
+  rpc SetWorkflowFile(SetWorkflowRequest) returns (SetWorkflowResponse);
+  rpc GetServices(google.protobuf.Empty) returns (GetServicesResponse);
+}
