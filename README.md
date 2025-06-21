@@ -114,3 +114,5 @@ Send a GET request to the rest gateway:
 2. Implement the requierd server methods (Execute, GetStegServiceInfo).
 3. Register the service in the grpc gateway by adding the endpoint to the services env (if you are using docker you can add is directly in docker-compose.yaml).
 4. Restart the grpc server.
+
+#### This project was part of my master's thesis, titled ["Konzeption zur Erweiterung von Digital Forensics und Incident Response Tools zur Analyse Bildbasierter Stegomalware."](https://github.com/user-attachments/files/20820326/Masterarbeit_Ohlhof.pdf)
