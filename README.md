@@ -110,4 +110,7 @@ Send a GET request to the rest gateway:
 
 ### Implementing new Services
 
-Import the proto files in your desiered language to your service. Implement the requierd server methods (Execute, GetStegServiceInfo). Register the service in the grpc gateway by adding the endpoint to the services env (if you are using docker you can add is directly in docker-compose.yaml). Restart the grpc server.
+1. Import the proto files in your desiered language to your service.
+2. Implement the requierd server methods (Execute, GetStegServiceInfo).
+3. Register the service in the grpc gateway by adding the endpoint to the services env (if you are using docker you can add is directly in docker-compose.yaml).
+4. Restart the grpc server.
