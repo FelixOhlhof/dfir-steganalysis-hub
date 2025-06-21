@@ -1,11 +1,25 @@
 ## DFIR Steg Hub
-
 ### Installation using Docker
 
 1. docker-compose build
 2. docker-compose up -d
 
-### Configure the Workflow
+### Architecture
+
+The Architecture consists out of clients, gateways, a webserver and multiple services. Clients can send requests via the grpc or the rest gateway to execute the whole workflow or a single service.
+
+![alt text](image.png)
+
+Clients can eather send a StegAnalysisRequest (see [steg_analysis.proto](common/proto/steg_analysis.proto) ) to the grpc gateway or a get request to the rest gateway.
+
+### Workflow-Manager
+
+The **Workflow Manager** is a web application designed to simplify the configuration and management of analysis workflows for steganalysis tasks.
+
+
+<img src="https://github.com/user-attachments/assets/b96194ef-1390-425e-817d-bbf2f040c60e" alt="drawing" width="600"/>
+
+To configure the Workflow:
 
 1. Go to localhost (port 80 is default for the web server)
 2. Edit the workflow in the editor or upload an existing yaml file
@@ -13,12 +27,60 @@
    - Click choose file
    - Click execute
 
-### Architecture
+#### Key Features
 
-The Architecture consists out of clients, gateways, a webserver and multiple services. Clients can send requests via the grpc or the rest gateway to execute the whole workflow or a single service.
+##### 1. Workflow Editor
+- View and edit the current workflow YAML file stored in the gRPC gateway
+- Save changes directly via the web interface
+- Upload existing workflow files for easy switching between configurations
+- Demo mode for previewing syntax and configuration examples
 
-![alt text](image.png)
-Clients can eather send a StegAnalysisRequest (see [steg_analysis.proto](common/proto/steg_analysis.proto) ) to the grpc gateway or a get request to the rest gateway.
+##### 2. Test Component
+- Run a steganalysis using a selected image with the current configuration
+- Instantly view results to validate setup
+- Supports error analysis before deploying workflows in production
+
+##### 3. Services Component
+- Displays all registered steganalysis services
+- Shows detailed information about supported functions, parameters, and return values
+
+#### Workflow Syntax
+
+Workflows are defined in a **YAML file** structured into two main sections:
+
+##### Global Settings
+- `task_timeout_in_sec`: Timeout for individual tasks (in seconds)
+- `workflow_timeout_in_sec`: Timeout for the overall workflow (in seconds)
+- `max_concurrent_req`: Maximum number of concurrent requests
+- `max_file_size_in_kb`: Maximum file size allowed (in KB)
+- `allowed_file_types`: List of supported file formats
+- `toggle_output`: Enable/disable output for all tasks
+
+##### Task Execution & Control
+- **sync / async groups** for sequential or parallel execution
+- **Iterators (`iter`)** to loop over lists or dictionaries
+- Each task is defined using the `exec` field (e.g., `aletheia.auto`)
+
+##### Task Configuration Options
+- `name`, `cond`, `file`, `param`, `return`, `hide`, `hide_on_err`
+- `additional_return_fields`, `show_output`
+
+##### Conditional Logic & Expressions (`cond`)
+- Built-in support for [govaluate](https://github.com/Knetic/govaluate) expressions
+- Supported functions: `strlen`, `strcontains`, `toNumber`, `isNull`, `listContains`, `containsKey`, etc.
+- Special control structures like `condReturn`, `safe`, and more
+
+#### Example
+```yaml
+workflow_timeout_in_sec: 60
+tasks:
+  - sync:
+      - exec: aletheia.auto
+      - exec: detector.run
+```
+
+
+
 
 ### Using the Yara Client
 
